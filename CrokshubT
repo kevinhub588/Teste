@@ -1,0 +1,2149 @@
+--// ============================================================
+--// CROKS HUB v11.3 - FINAL
+--// By Kevin & Fox
+--// ============================================================
+
+print("[CROKS] Boot iniciado")
+
+local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local CollectionService = game:GetService("CollectionService")
+local TeleportService = game:GetService("TeleportService")
+local RS = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local targetParent = PlayerGui
+print("[CROKS] targetParent OK")
+
+local DISCORD_LINK = "https://discord.gg/dDqdH8tJdM"
+local IMG_FUNDO = "rbxassetid://107076535520704"
+local IMG_ICONE = "rbxassetid://117944324444129"
+
+pcall(function()
+    for _, g in ipairs(targetParent:GetChildren()) do
+        if g:IsA("ScreenGui") and (g.Name:find("Croks") or g.Name:find("LoadingGui") or g.Name:find("MainGui") or g.Name:find("NotifGui")) then
+            g:Destroy()
+        end
+    end
+end)
+
+local MAPA_RARIDADE = {
+    common=Color3.fromRGB(180,180,180), uncommon=Color3.fromRGB(120,220,120),
+    rare=Color3.fromRGB(90,170,255), epic=Color3.fromRGB(180,100,255),
+    legendary=Color3.fromRGB(255,180,60), mythic=Color3.fromRGB(255,80,80),
+    cosmic=Color3.fromRGB(120,100,255), secret=Color3.fromRGB(255,100,220),
+    eternal=Color3.fromRGB(255,220,80), divine=Color3.fromRGB(255,255,255),
+    godly=Color3.fromRGB(255,240,160), exclusive=Color3.fromRGB(255,160,60),
+    limited=Color3.fromRGB(120,255,200), brainrot=Color3.fromRGB(255,140,60),
+    monster=Color3.fromRGB(200,80,255), boss=Color3.fromRGB(255,100,100),
+    event=Color3.fromRGB(150,255,150), admin=Color3.fromRGB(255,60,60),
+}
+local COR_PADRAO_RARIDADE = Color3.fromRGB(220,220,220)
+
+local function corDaRaridade(rarName, corAsset)
+    if type(rarName) == "string" and rarName ~= "" and rarName ~= "?" then
+        local key = string.lower(tostring(rarName))
+        if MAPA_RARIDADE[key] then return MAPA_RARIDADE[key] end
+        for k, v in pairs(MAPA_RARIDADE) do
+            if string.find(key, k, 1, true) then return v end
+        end
+    end
+    if typeof(corAsset) == "Color3" then return corAsset end
+    return COR_PADRAO_RARIDADE
+end
+
+local C = {
+    bg=Color3.fromRGB(15,5,5), panel=Color3.fromRGB(25,8,8),
+    off=Color3.fromRGB(35,15,15), offStroke=Color3.fromRGB(100,40,40),
+    on=Color3.fromRGB(200,30,30), onStroke=Color3.fromRGB(255,80,80),
+    onGreen=Color3.fromRGB(40,180,80), onGreenStroke=Color3.fromRGB(100,255,140),
+    danger=Color3.fromRGB(255,40,40), warn=Color3.fromRGB(255,180,60),
+    text=Color3.fromRGB(255,240,240), textDim=Color3.fromRGB(200,160,160),
+}
+local COR_OFF = C.off
+local COR_OFF_STROKE = C.offStroke
+local COR_ON = C.on
+local COR_ON_STROKE = C.onStroke
+
+-- LOADING
+local loadingGui = Instance.new("ScreenGui")
+loadingGui.Name = "CroksLoading_" .. tostring(math.random(10000,99999))
+loadingGui.ResetOnSpawn = false
+loadingGui.IgnoreGuiInset = true
+loadingGui.DisplayOrder = 999999
+loadingGui.Parent = targetParent
+
+local ldBase = Instance.new("Frame", loadingGui)
+ldBase.Size = UDim2.new(1,0,1,0)
+ldBase.BackgroundColor3 = Color3.fromRGB(8,3,3)
+ldBase.BorderSizePixel = 0
+
+local ldBg = Instance.new("ImageLabel", loadingGui)
+ldBg.Size = UDim2.new(1,0,1,0)
+ldBg.BackgroundTransparency = 1
+ldBg.Image = IMG_FUNDO
+ldBg.ImageTransparency = 0.3
+ldBg.ScaleType = Enum.ScaleType.Crop
+
+local ldOverlay = Instance.new("Frame", loadingGui)
+ldOverlay.Size = UDim2.new(1,0,1,0)
+ldOverlay.BackgroundColor3 = Color3.fromRGB(5,2,2)
+ldOverlay.BackgroundTransparency = 0.6
+ldOverlay.BorderSizePixel = 0
+
+local ldCenter = Instance.new("Frame", loadingGui)
+ldCenter.Size = UDim2.new(0,340,0,260)
+ldCenter.Position = UDim2.new(0.5,-170,0.5,-130)
+ldCenter.BackgroundColor3 = Color3.fromRGB(15,3,3)
+ldCenter.BackgroundTransparency = 0.05
+ldCenter.BorderSizePixel = 0
+Instance.new("UICorner", ldCenter).CornerRadius = UDim.new(0,16)
+local ldCenterStroke = Instance.new("UIStroke", ldCenter)
+ldCenterStroke.Thickness = 2
+ldCenterStroke.Color = C.on
+
+local ldIcon = Instance.new("ImageLabel", ldCenter)
+ldIcon.Size = UDim2.new(0,80,0,80)
+ldIcon.Position = UDim2.new(0.5,-40,0,20)
+ldIcon.BackgroundTransparency = 1
+ldIcon.Image = IMG_ICONE
+ldIcon.ZIndex = 11
+ldIcon.ScaleType = Enum.ScaleType.Fit
+
+task.spawn(function()
+    while ldIcon.Parent do
+        local t1 = TweenService:Create(ldIcon, TweenInfo.new(0.8, Enum.EasingStyle.Sine), {Size = UDim2.new(0,88,0,88)})
+        t1:Play() t1.Completed:Wait()
+        local t2 = TweenService:Create(ldIcon, TweenInfo.new(0.8, Enum.EasingStyle.Sine), {Size = UDim2.new(0,80,0,80)})
+        t2:Play() t2.Completed:Wait()
+    end
+end)
+
+local ldTitle = Instance.new("TextLabel", ldCenter)
+ldTitle.Size = UDim2.new(1,-20,0,34)
+ldTitle.Position = UDim2.new(0,10,0,110)
+ldTitle.BackgroundTransparency = 1
+ldTitle.Text = "CROKS HUB"
+ldTitle.TextColor3 = Color3.fromRGB(255,255,255)
+ldTitle.Font = Enum.Font.GothamBlack
+ldTitle.TextSize = 26
+local ldTitleGrad = Instance.new("UIGradient", ldTitle)
+ldTitleGrad.Color = ColorSequence.new(Color3.fromRGB(255,80,80), Color3.fromRGB(180,0,0))
+ldTitleGrad.Rotation = 90
+
+local ldSubDot = Instance.new("Frame", ldCenter)
+ldSubDot.Size = UDim2.new(0, 6, 0, 6)
+ldSubDot.Position = UDim2.new(0, 14, 0, 152)
+ldSubDot.BackgroundColor3 = C.on
+ldSubDot.BorderSizePixel = 0
+ldSubDot.ZIndex = 11
+Instance.new("UICorner", ldSubDot).CornerRadius = UDim.new(1, 0)
+
+task.spawn(function()
+    while ldSubDot.Parent do
+        ldSubDot.BackgroundTransparency = 0.2
+        task.wait(0.4)
+        ldSubDot.BackgroundTransparency = 0.8
+        task.wait(0.4)
+    end
+end)
+
+local ldSub = Instance.new("TextLabel", ldCenter)
+ldSub.Size = UDim2.new(1,-40,0,18)
+ldSub.Position = UDim2.new(0,26,0,146)
+ldSub.BackgroundTransparency = 1
+ldSub.Text = "Iniciando..."
+ldSub.TextColor3 = Color3.fromRGB(220,180,180)
+ldSub.Font = Enum.Font.GothamBold
+ldSub.TextSize = 11
+ldSub.TextXAlignment = Enum.TextXAlignment.Left
+
+local ldBarBg = Instance.new("Frame", ldCenter)
+ldBarBg.Size = UDim2.new(1,-40,0,8)
+ldBarBg.Position = UDim2.new(0,20,0,178)
+ldBarBg.BackgroundColor3 = Color3.fromRGB(30,10,10)
+ldBarBg.BorderSizePixel = 0
+Instance.new("UICorner", ldBarBg).CornerRadius = UDim.new(1,0)
+
+local ldBarFill = Instance.new("Frame", ldBarBg)
+ldBarFill.Size = UDim2.new(0,0,1,0)
+ldBarFill.BackgroundColor3 = C.on
+ldBarFill.BorderSizePixel = 0
+Instance.new("UICorner", ldBarFill).CornerRadius = UDim.new(1,0)
+local ldBarGrad = Instance.new("UIGradient", ldBarFill)
+ldBarGrad.Color = ColorSequence.new(Color3.fromRGB(255,80,80), Color3.fromRGB(180,0,0))
+
+task.spawn(function()
+    while ldBarGrad.Parent do
+        ldBarGrad.Offset = Vector2.new(math.sin(tick() * 2) * 0.2, 0)
+        task.wait(0.03)
+    end
+end)
+
+local ldPct = Instance.new("TextLabel", ldCenter)
+ldPct.Size = UDim2.new(1,-40,0,16)
+ldPct.Position = UDim2.new(0,20,0,194)
+ldPct.BackgroundTransparency = 1
+ldPct.Text = "0%"
+ldPct.TextColor3 = Color3.fromRGB(220,200,200)
+ldPct.Font = Enum.Font.Code
+ldPct.TextSize = 11
+ldPct.TextXAlignment = Enum.TextXAlignment.Right
+
+local ldStatus = Instance.new("TextLabel", ldCenter)
+ldStatus.Size = UDim2.new(1,-40,0,14)
+ldStatus.Position = UDim2.new(0,20,0,214)
+ldStatus.BackgroundTransparency = 1
+ldStatus.Text = "[ INIT ]  v11.3 TECH"
+ldStatus.TextColor3 = C.on
+ldStatus.Font = Enum.Font.Code
+ldStatus.TextSize = 10
+ldStatus.TextXAlignment = Enum.TextXAlignment.Left
+
+local ldCredit = Instance.new("TextLabel", ldCenter)
+ldCredit.Size = UDim2.new(1,-20,0,16)
+ldCredit.Position = UDim2.new(0,10,0,236)
+ldCredit.BackgroundTransparency = 1
+ldCredit.Text = "by Kevin & Fox"
+ldCredit.TextColor3 = Color3.fromRGB(200,160,160)
+ldCredit.Font = Enum.Font.GothamBold
+ldCredit.TextSize = 10
+
+print("[CROKS] Loading OK")
+
+-- INICIALIZACAO
+local Assets, EggState
+pcall(function()
+    local d = RS:FindFirstChild("Data")
+    if d then
+        local a = d:FindFirstChild("Assets")
+        if a then Assets = require(a) end
+    end
+end)
+pcall(function()
+    local c = RS:FindFirstChild("Client")
+    if c then
+        local e = c:FindFirstChild("EggState")
+        if e then EggState = require(e) end
+    end
+end)
+
+local Snapshot = nil
+pcall(function()
+    local pkg = RS:FindFirstChild("Packages")
+    if pkg then
+        local net = pkg:FindFirstChild("Networking")
+        if net then
+            Snapshot = net:FindFirstChild("RF/EggWorld/AskFieldEggSnapshot")
+        end
+    end
+end)
+
+print("[CROKS] Assets OK")
+
+local CONFIG = { ESP_CACHE_TIME = 2 }
+
+local LOG = {}
+local function addLog(msg)
+    local t = os.date("%H:%M:%S") .. " " .. tostring(msg)
+    table.insert(LOG, t)
+    if #LOG > 100 then table.remove(LOG,1) end
+    if _G.CroksLogUpdate then pcall(_G.CroksLogUpdate) end
+end
+
+local function formatarValor(v)
+    v = tonumber(v) or 0
+    if v >= 1e12 then return string.format("%.2fT", v/1e12)
+    elseif v >= 1e9 then return string.format("%.2fB", v/1e9)
+    elseif v >= 1e6 then return string.format("%.2fM", v/1e6)
+    elseif v >= 1e3 then return string.format("%.1fK", v/1e3)
+    else return tostring(math.floor(v)) end
+end
+
+local States = {
+    AntiHitEnabled=false, AntiTrapEnabled=true, AntiRagdollEnabled=true,
+    ESPOvosAtivo=true, ESPAreaAtual=false, NotificacoesAtivas=true,
+    AutoBatEnabled=false, VelocidadeBypass=250, SpeedPadrao=250,
+    IrAtivo=false, BasePos=nil, TeleportAtivo=false, TeleportOneShot=false,
+    CarregandoOvo=false, KillerStealAtivo=false,
+    ESPPlayerAtivo=false, OvoInvisivel=false, VoltaAtiva=false,
+}
+
+-- NOTIFICACAO
+local notifGui = Instance.new("ScreenGui")
+notifGui.Name = "CroksNotif_" .. tostring(math.random(10000,99999))
+notifGui.ResetOnSpawn = false
+notifGui.IgnoreGuiInset = true
+notifGui.DisplayOrder = 999998
+notifGui.Parent = targetParent
+
+local notifFrame = Instance.new("Frame", notifGui)
+notifFrame.Size = UDim2.new(0,280,0,50)
+notifFrame.Position = UDim2.new(0.5,-140,0.1,0)
+notifFrame.BackgroundColor3 = C.panel
+notifFrame.BorderSizePixel = 0
+notifFrame.Visible = false
+Instance.new("UICorner", notifFrame).CornerRadius = UDim.new(0,10)
+local notifStroke = Instance.new("UIStroke", notifFrame)
+notifStroke.Color = C.on
+notifStroke.Thickness = 2
+
+local notifLabel = Instance.new("TextLabel", notifFrame)
+notifLabel.Size = UDim2.new(1,-20,1,0)
+notifLabel.Position = UDim2.new(0,10,0,0)
+notifLabel.BackgroundTransparency = 1
+notifLabel.Text = ""
+notifLabel.TextColor3 = Color3.fromRGB(255,255,255)
+notifLabel.Font = Enum.Font.GothamBold
+notifLabel.TextSize = 13
+notifLabel.TextWrapped = true
+
+local notifThread = 0
+local function mostrarNotif(texto, duracao, tipo)
+    if not States.NotificacoesAtivas then return end
+    duracao = duracao or 2
+    tipo = tipo or "info"
+    notifThread = notifThread + 1
+    local myThread = notifThread
+    notifLabel.Text = texto
+    if tipo == "success" then
+        notifStroke.Color = C.onGreen
+        notifFrame.BackgroundColor3 = Color3.fromRGB(15, 40, 20)
+    elseif tipo == "error" then
+        notifStroke.Color = C.danger
+        notifFrame.BackgroundColor3 = Color3.fromRGB(40, 15, 15)
+    elseif tipo == "warn" then
+        notifStroke.Color = C.warn
+        notifFrame.BackgroundColor3 = Color3.fromRGB(40, 30, 15)
+    else
+        notifStroke.Color = C.on
+        notifFrame.BackgroundColor3 = C.panel
+    end
+    notifFrame.Visible = true
+    notifFrame.Position = UDim2.new(0.5,-140,-0.1,0)
+    TweenService:Create(notifFrame, TweenInfo.new(0.25), {Position = UDim2.new(0.5,-140,0.1,0)}):Play()
+    task.delay(duracao, function()
+        if myThread == notifThread then notifFrame.Visible = false end
+    end)
+end
+
+print("[CROKS] Notif OK")
+
+-- HUMANOID BYPASS
+local Bypass = { Enabled=true, InProgress=false, CloneHumanoid=nil }
+local PROPS_TO_COPY = {
+    "WalkSpeed","JumpPower","JumpHeight","UseJumpPower","MaxHealth","Health",
+    "AutoRotate","AutoJumpEnabled","BreakJointsOnDeath","CameraOffset",
+    "DisplayDistanceType","HealthDisplayDistance","HealthDisplayType",
+    "NameDisplayDistance","NameOcclusion","RequiresNeck","WalkJumpPower",
+    "HipHeight","RigType","WalkSpeedCheck","EvaluateStateMachine","MaxSlopeAngle",
+    "AutomaticScalingEnabled",
+}
+local STATE_ENUMS = {
+    Enum.HumanoidStateType.FallingDown, Enum.HumanoidStateType.Ragdoll,
+    Enum.HumanoidStateType.GettingUp, Enum.HumanoidStateType.Landed,
+    Enum.HumanoidStateType.Flying, Enum.HumanoidStateType.Freefall,
+    Enum.HumanoidStateType.Seated, Enum.HumanoidStateType.PlatformStanding,
+    Enum.HumanoidStateType.Dead, Enum.HumanoidStateType.Physics,
+    Enum.HumanoidStateType.Climbing, Enum.HumanoidStateType.Swimming,
+    Enum.HumanoidStateType.Running, Enum.HumanoidStateType.RunningNoPhysics,
+    Enum.HumanoidStateType.StrafingNoPhysics, Enum.HumanoidStateType.Jumping,
+}
+local function bypassCopyProps(orig, clone)
+    for _, prop in ipairs(PROPS_TO_COPY) do
+        pcall(function()
+            local ok, value = pcall(function() return orig[prop] end)
+            if ok and value ~= nil then pcall(function() clone[prop] = value end) end
+        end)
+    end
+end
+local function bypassCaptureStates(hum)
+    local states = {}
+    for _, s in ipairs(STATE_ENUMS) do
+        local ok, enabled = pcall(function() return hum:GetStateEnabled(s) end)
+        if ok then states[s] = enabled end
+    end
+    local curState
+    pcall(function() curState = hum:GetState() end)
+    return states, curState
+end
+local function bypassReapplyStates(hum, states, curState)
+    for s, enabled in pairs(states or {}) do
+        pcall(function() hum:SetStateEnabled(s, enabled) end)
+    end
+    if curState then pcall(function() hum:ChangeState(curState) end) end
+end
+
+function Bypass.Apply(character)
+    if not Bypass.Enabled or Bypass.InProgress then return false end
+    Bypass.InProgress = true
+    character = character or LocalPlayer.Character
+    if not character then Bypass.InProgress = false return false end
+    local origHum = character:FindFirstChildOfClass("Humanoid")
+    if not origHum then Bypass.InProgress = false return false end
+    local cloneHum
+    if not pcall(function() cloneHum = origHum:Clone() end) or not cloneHum then
+        Bypass.InProgress = false return false
+    end
+    local animator = origHum:FindFirstChildOfClass("Animator")
+    local animatorMoved = false
+    if animator then animatorMoved = pcall(function() animator.Parent = cloneHum end) end
+    bypassCopyProps(origHum, cloneHum)
+    local states, curState = bypassCaptureStates(origHum)
+    pcall(function() cloneHum.Name = "Humanoid" end)
+    if not pcall(function() cloneHum.Parent = character end) then
+        if animatorMoved and animator and animator.Parent ~= origHum then
+            pcall(function() animator.Parent = origHum end)
+        end
+        Bypass.InProgress = false return false
+    end
+    task.wait(0.05)
+    pcall(function() origHum:Destroy() end)
+    task.wait(0.05)
+    pcall(function()
+        if workspace.CurrentCamera then workspace.CurrentCamera.CameraSubject = cloneHum end
+    end)
+    bypassReapplyStates(cloneHum, states, curState)
+    Bypass.CloneHumanoid = cloneHum
+    Bypass.InProgress = false
+    return true
+end
+
+function Bypass.Restore()
+    local character = LocalPlayer.Character
+    if not character then return false end
+    local cloneHum = Bypass.CloneHumanoid
+    if not cloneHum or not cloneHum.Parent then
+        Bypass.CloneHumanoid = nil
+        return false
+    end
+    local newHum = Instance.new("Humanoid")
+    newHum.Name = "Humanoid"
+    bypassCopyProps(cloneHum, newHum)
+    local animator = cloneHum:FindFirstChildOfClass("Animator")
+    local states, curState = bypassCaptureStates(cloneHum)
+    local animatorMoved = false
+    if animator then animatorMoved = pcall(function() animator.Parent = newHum end) end
+    if not pcall(function() newHum.Parent = character end) then
+        if animatorMoved and animator and animator.Parent ~= cloneHum then
+            pcall(function() animator.Parent = cloneHum end)
+        end
+        pcall(function() newHum:Destroy() end)
+        return false
+    end
+    task.wait(0.05)
+    pcall(function() cloneHum:Destroy() end)
+    task.wait(0.05)
+    bypassReapplyStates(newHum, states, curState)
+    pcall(function()
+        if workspace.CurrentCamera then workspace.CurrentCamera.CameraSubject = newHum end
+    end)
+    Bypass.CloneHumanoid = nil
+    return true
+end
+
+local function bypassHookCharacter(char)
+    task.wait(0.3)
+    if Bypass.Enabled then Bypass.Apply(char) end
+end
+if LocalPlayer.Character then task.spawn(bypassHookCharacter, LocalPlayer.Character) end
+LocalPlayer.CharacterAdded:Connect(bypassHookCharacter)
+print("[CROKS] Bypass OK")
+
+-- OVO INVISIVEL
+local function getOvoNaMao()
+    local c = LocalPlayer.Character
+    if not c then return nil end
+    for _, t in ipairs(c:GetChildren()) do
+        if t:IsA("Tool") then
+            local uid = t:GetAttribute("UID")
+            local it = t:GetAttribute("ItemType")
+            if uid or it == "Egg" or t.Name:lower():find("egg") then
+                return t
+            end
+        end
+    end
+    return nil
+end
+
+local function aplicarInvisibilidadeOvo()
+    if not States.OvoInvisivel then return end
+    local tool = getOvoNaMao()
+    if not tool then return end
+    for _, d in ipairs(tool:GetDescendants()) do
+        if d:IsA("BasePart") then d.LocalTransparencyModifier = 1
+        elseif d:IsA("Decal") then d.Transparency = 1 end
+    end
+end
+
+local function restaurarInvisibilidadeOvo()
+    local tool = getOvoNaMao()
+    if not tool then return end
+    for _, d in ipairs(tool:GetDescendants()) do
+        if d:IsA("BasePart") then d.LocalTransparencyModifier = 0
+        elseif d:IsA("Decal") then d.Transparency = 0 end
+    end
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.3)
+        if States.OvoInvisivel then pcall(aplicarInvisibilidadeOvo) end
+    end
+end)
+
+-- AUTO BAT
+local CroksBat = { Ligado=false, PriorizarOvo=true, Cooldown=0.15 }
+local function EhBat(t) return t and t:IsA("Tool") and t:GetAttribute("IsBat") == true end
+
+local function AcharBat()
+    local char = LocalPlayer.Character
+    if not char then return nil, nil end
+    for _, t in ipairs(char:GetChildren()) do
+        if EhBat(t) then return t, "eq" end
+    end
+    local bp = LocalPlayer:FindFirstChildOfClass("Backpack")
+    if bp then
+        for _, t in ipairs(bp:GetChildren()) do
+            if EhBat(t) then return t, "moch" end
+        end
+    end
+    return nil, nil
+end
+
+local function EquiparBat()
+    local char = LocalPlayer.Character
+    if not char then return false end
+    local bat, onde = AcharBat()
+    if not bat or onde == "eq" then return bat ~= nil end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return false end
+    pcall(function() hum:EquipTool(bat) end)
+    local t0 = tick()
+    while bat.Parent ~= char and (tick() - t0) < 0.5 do RunService.Heartbeat:Wait() end
+    return bat.Parent == char
+end
+
+local function BatEquipada()
+    local char = LocalPlayer.Character
+    if not char then return nil end
+    for _, t in ipairs(char:GetChildren()) do
+        if EhBat(t) then return t end
+    end
+end
+
+local function TaComOvo(player)
+    local c = player.Character
+    if not c then return false end
+    for _, t in ipairs(c:GetChildren()) do
+        if t:IsA("Tool") then
+            local it = t:GetAttribute("ItemType")
+            local uid = t:GetAttribute("UID")
+            if it == "Egg" or uid ~= nil then return true end
+            if string.find(string.lower(t.Name), "egg") then return true end
+        end
+    end
+    if c:GetAttribute("IsCarrying") == true then return true end
+    return player:GetAttribute("IsCarrying") == true
+end
+
+local function EuToComOvo() return TaComOvo(LocalPlayer) end
+
+local function AcharAlvoBat()
+    local comOvo, semOvo
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            local c = p.Character
+            local hum = c and c:FindFirstChildOfClass("Humanoid")
+            if hum and hum.Health > 0 then
+                local hl = c:FindFirstChild("BatTargetHighlight", true)
+                if hl and hl:IsA("Highlight") and hl.Enabled ~= false then
+                    if TaComOvo(p) then
+                        comOvo = comOvo or p
+                    else
+                        semOvo = semOvo or p
+                    end
+                end
+            end
+        end
+    end
+    if CroksBat.PriorizarOvo then return comOvo or semOvo end
+    return semOvo or comOvo
+end
+
+task.spawn(function()
+    while true do
+        if CroksBat.Ligado then
+            pcall(function()
+                local bat, onde = AcharBat()
+                if bat and onde == "moch" then EquiparBat() end
+            end)
+            task.wait(0.3)
+        else task.wait(0.5) end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if CroksBat.Ligado then
+            if EuToComOvo() then task.wait(0.3)
+            else
+                pcall(function()
+                    local alvo = AcharAlvoBat()
+                    local bat = BatEquipada()
+                    if alvo and bat then pcall(function() bat:Activate() end) end
+                end)
+                task.wait(CroksBat.Cooldown)
+            end
+        else task.wait(0.3) end
+    end
+end)
+
+-- ANTI-TRAP / ANTI-RAGDOLL
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if States.AntiTrapEnabled then
+            pcall(function()
+                for _, trap in ipairs(CollectionService:GetTagged("PlacedTrap")) do
+                    local hb = trap:FindFirstChild("Hitbox")
+                    if hb and hb:IsA("BasePart") and hb.CanTouch then hb.CanTouch = false end
+                end
+            end)
+        end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if States.AntiRagdollEnabled then
+            local c = LocalPlayer.Character
+            local hum = c and c:FindFirstChildOfClass("Humanoid")
+            local hrp = c and c:FindFirstChild("HumanoidRootPart")
+            if hum and hum.Parent and hrp then
+                pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false) end)
+                pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false) end)
+                pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Physics, false) end)
+                pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding, false) end)
+                local st
+                pcall(function() st = hum:GetState() end)
+                if st == Enum.HumanoidStateType.Ragdoll or st == Enum.HumanoidStateType.Physics
+                   or st == Enum.HumanoidStateType.FallingDown or st == Enum.HumanoidStateType.PlatformStanding then
+                    pcall(function() hum:ChangeState(Enum.HumanoidStateType.GettingUp) end)
+                    pcall(function() hum.PlatformStand = false end)
+                end
+                if hum.PlatformStand then pcall(function() hum.PlatformStand = false end) end
+                local vel = hrp.AssemblyLinearVelocity
+                local speed = vel.Magnitude
+                local limite = math.max((hum.WalkSpeed or 16) * 2.5, 45)
+                if speed > limite then
+                    local fator = limite / speed
+                    pcall(function() hrp.AssemblyLinearVelocity = vel * fator end)
+                end
+            end
+        end
+    end
+end)
+
+print("[CROKS] Sistemas base OK")
+
+-- EGG INFO
+local function getEggInfo(category)
+    if not Assets or not Assets.Directory then return nil end
+    local data = Assets.Directory[category]
+    if not data then return nil end
+    local rarity = data.Rarity
+    local rarName, rarColor = "?", COR_PADRAO_RARIDADE
+    if type(rarity) == "table" then
+        rarName = rarity.DisplayName or rarity.Name or rarity._id or "?"
+        if typeof(rarity.Color) == "Color3" then rarColor = rarity.Color
+        elseif typeof(rarity.Color) == "ColorSequence" then
+            local kps = rarity.Color.Keypoints
+            if kps and #kps > 0 then rarColor = kps[1].Value end
+        end
+    end
+    return { Nome=data.DisplayName or category, Icon=data.Icon or "", Valor=data.EarningRate or 0, Raridade=rarName, Cor=corDaRaridade(rarName, rarColor) }
+end
+
+local function listarOvos()
+    if not Snapshot then return {} end
+    local ok, r = pcall(function() return Snapshot:InvokeServer() end)
+    if not ok or not r or not r.Records then return {} end
+    local ovos = {}
+    for _, rec in ipairs(r.Records) do
+        if (rec.State == "Slot" or rec.State == "Dropped") and rec.AssetCategory then
+            local info = getEggInfo(rec.AssetCategory)
+            if info then
+                table.insert(ovos, { Uid=rec.Uid, Nome=info.Nome, Icon=info.Icon, Valor=info.Valor,
+                    Raridade=info.Raridade, Cor=info.Cor, Area=rec.AreaId or "?",
+                    Pos=rec.BottomCFrame and rec.BottomCFrame.Position })
+            end
+        end
+    end
+    table.sort(ovos, function(a,b) return a.Valor > b.Valor end)
+    return ovos
+end
+
+local ovosCache = { data = {}, time = 0 }
+local function listarOvosCache(force)
+    local agora = tick()
+    if force or agora - ovosCache.time >= CONFIG.ESP_CACHE_TIME or #ovosCache.data == 0 then
+        ovosCache.data = listarOvos()
+        ovosCache.time = agora
+    end
+    return ovosCache.data
+end
+
+task.spawn(function() listarOvosCache(true) end)
+
+local modelCache = {}
+local function acharModelOvo(uid)
+    if modelCache[uid] and modelCache[uid].Parent then return modelCache[uid] end
+    local found = nil
+    for _, d in ipairs(workspace:GetDescendants()) do
+        if (d:IsA("Model") or d:IsA("BasePart")) and (d:GetAttribute("Uid") == uid or d.Name == uid) then
+            found = d; break
+        end
+    end
+    modelCache[uid] = found
+    return found
+end
+
+local function melhorOvoV2()
+    local ovos = listarOvosCache()
+    if #ovos == 0 then return nil end
+    if not States.ESPAreaAtual then return ovos[1] end
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return ovos[1] end
+    local areas = workspace:FindFirstChild("World")
+    areas = areas and areas:FindFirstChild("Areas")
+    areas = areas and areas:FindFirstChild("GuardAreas")
+    if not areas then return ovos[1] end
+    local areaAtual, menorDist = nil, math.huge
+    for _, area in ipairs(areas:GetChildren()) do
+        local ok, bb, size = pcall(function() return area:GetBoundingBox() end)
+        if ok and bb and size then
+            local p = bb:PointToObjectSpace(hrp.Position)
+            if math.abs(p.X) <= size.X/2 and math.abs(p.Z) <= size.Z/2 then
+                areaAtual = area.Name; break
+            end
+        end
+        local piv = area:GetPivot().Position
+        local d = (Vector3.new(piv.X,0,piv.Z) - Vector3.new(hrp.Position.X,0,hrp.Position.Z)).Magnitude
+        if d < menorDist then menorDist = d; areaAtual = area.Name end
+    end
+    if not areaAtual then return ovos[1] end
+    for _, o in ipairs(ovos) do if o.Area == areaAtual then return o end end
+    return ovos[1]
+end
+
+_G.CroksMelhorOvo = melhorOvoV2
+
+print("[CROKS] Egg info OK")
+
+-- HELPERS V2
+local speedForcando = false
+local speedAlvo = States.VelocidadeBypass
+
+task.spawn(function()
+    while true do
+        task.wait(0.03)
+        if speedForcando then
+            local c = LocalPlayer.Character
+            local h = c and c:FindFirstChildOfClass("Humanoid")
+            if h and math.abs(h.WalkSpeed - speedAlvo) > 0.3 then
+                pcall(function() h.WalkSpeed = speedAlvo end)
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if not speedForcando then
+            local c = LocalPlayer.Character
+            local h = c and c:FindFirstChildOfClass("Humanoid")
+            if h and math.abs(h.WalkSpeed - States.SpeedPadrao) > 1 then
+                pcall(function() h.WalkSpeed = States.SpeedPadrao end)
+            end
+        end
+    end
+end)
+
+local function getCharV2()
+    local c = LocalPlayer.Character
+    if not c then return nil end
+    local h = c:FindFirstChildOfClass("Humanoid")
+    local r = c:FindFirstChild("HumanoidRootPart")
+    if not h or not r or h.Health <= 0 then return nil end
+    return c, h, r
+end
+
+local function distV2(pos)
+    local _, _, hrp = getCharV2()
+    if not hrp then return 9999 end
+    return (hrp.Position - pos).Magnitude
+end
+
+local function cancelarMovimentoV2()
+    local _, h, r = getCharV2()
+    if h and r then
+        pcall(function()
+            h:Move(Vector3.zero, false)
+            h:MoveTo(r.Position)
+        end)
+    end
+end
+
+local function moverV2(pos)
+    local _, h = getCharV2()
+    if h then h:MoveTo(pos) end
+end
+
+local function tpInstaV2(pos, altura)
+    altura = altura or 3
+    local char, _, hrp = getCharV2()
+    if not char or not hrp then return false end
+    cancelarMovimentoV2()
+    task.wait(0.03)
+    local destino = Vector3.new(pos.X, pos.Y + altura, pos.Z)
+    pcall(function() char:PivotTo(CFrame.new(destino)) end)
+    task.wait(0.05)
+    local _, _, hrp2 = getCharV2()
+    if hrp2 then
+        pcall(function()
+            hrp2.AssemblyLinearVelocity = Vector3.zero
+            hrp2.AssemblyAngularVelocity = Vector3.zero
+        end)
+    end
+    return true
+end
+
+-- TELEPORT ONE-SHOT
+local function estaCarregandoOvoV2()
+    local pg = LocalPlayer:FindFirstChild("PlayerGui")
+    if pg then
+        for _, g in ipairs(pg:GetChildren()) do
+            if g:IsA("ScreenGui") then
+                local nome = g.Name:lower()
+                if nome:find("held") or nome:find("carry") then
+                    if g.Enabled then return true end
+                end
+            end
+        end
+    end
+    local char = LocalPlayer.Character
+    if char then
+        for _, obj in ipairs(char:GetChildren()) do
+            local n = obj.Name:lower()
+            if n:find("egg") or n:find("carry") or n:find("held") then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if States.TeleportAtivo and States.BasePos then
+            if not States.CarregandoOvo and estaCarregandoOvoV2() then
+                States.CarregandoOvo = true
+                addLog("Ovo detectado! TP base")
+                tpInstaV2(States.BasePos, 3)
+                if States.TeleportOneShot then
+                    States.TeleportAtivo = false
+                    if _G.CroksUpdateTp then _G.CroksUpdateTp() end
+                end
+                task.wait(0.3)
+                States.CarregandoOvo = false
+            end
+        end
+    end
+end)
+
+-- IR MELHOR OVO - velocidade 250
+local irThread = nil
+local function pararIrV2()
+    States.IrAtivo = false
+    if irThread then
+        pcall(function() task.cancel(irThread) end)
+        irThread = nil
+    end
+    speedForcando = false
+    cancelarMovimentoV2()
+    local _, h = getCharV2()
+    if h then h.WalkSpeed = States.SpeedPadrao end
+end
+
+local function irMelhorOvoV2()
+    if States.IrAtivo then
+        pararIrV2()
+        return false
+    end
+    States.IrAtivo = true
+    speedForcando = true
+    speedAlvo = 250
+
+    irThread = task.spawn(function()
+        local ovo = melhorOvoV2()
+        if not ovo or not ovo.Pos then
+            addLog("Nenhum ovo")
+            pararIrV2()
+            return
+        end
+        addLog("Indo: " .. ovo.Nome .. " [250]")
+        cancelarMovimentoV2()
+        task.wait(0.03)
+        moverV2(ovo.Pos)
+        local t0 = tick()
+        local ultimoReenvio = 0
+        local chegou = false
+        while States.IrAtivo and (tick() - t0) < 30 do
+            local _, h, hrp = getCharV2()
+            if not hrp then break end
+            local d = (hrp.Position - ovo.Pos).Magnitude
+            if d <= 25 then
+                chegou = true
+                break
+            end
+            if tick() - ultimoReenvio > 0.4 then
+                moverV2(ovo.Pos)
+                ultimoReenvio = tick()
+            end
+            task.wait(0.08)
+        end
+
+        if chegou and States.IrAtivo then
+            cancelarMovimentoV2()
+            task.wait(0.15)
+            tpInstaV2(ovo.Pos, 2)
+            task.wait(0.2)
+
+            local prompt = nil
+            for _, d in ipairs(workspace:GetDescendants()) do
+                if d:IsA("ProximityPrompt") and d.Name == "CarryAreaEgg" then
+                    local p = d.Parent
+                    if p and (p:IsA("BasePart") or p:IsA("Model")) then
+                        local pp = p:IsA("BasePart") and p.Position or p:GetPivot().Position
+                        if (pp - ovo.Pos).Magnitude < 15 then
+                            prompt = d
+                            break
+                        end
+                    end
+                end
+            end
+            if prompt then
+                pcall(function() prompt:InputHoldBegin() end)
+                task.wait(0.05)
+                pcall(function() prompt:InputHoldEnd() end)
+                if fireproximityprompt then
+                    pcall(function() fireproximityprompt(prompt) end)
+                end
+            end
+        end
+
+        speedForcando = false
+        local _, h = getCharV2()
+        if h then h.WalkSpeed = States.SpeedPadrao end
+        States.IrAtivo = false
+        irThread = nil
+        addLog("IR finalizado")
+    end)
+    return true
+end
+
+print("[CROKS] IR OK")
+
+-- UI PRINCIPAL
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CroksMain_" .. tostring(math.random(10000,99999))
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.DisplayOrder = 999997
+screenGui.Enabled = true
+screenGui.Parent = targetParent
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0,300,0,440)
+mainFrame.Position = UDim2.new(0.5,-150,0.5,-220)
+mainFrame.BackgroundColor3 = C.bg
+mainFrame.BackgroundTransparency = 1
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.ZIndex = 1
+mainFrame.Parent = screenGui
+
+local uiScale = Instance.new("UIScale"); uiScale.Scale = 1.0; uiScale.Parent = mainFrame
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0,10)
+
+local bgImage = Instance.new("ImageLabel")
+bgImage.Size = UDim2.new(1,0,1,0)
+bgImage.BackgroundColor3 = C.panel
+bgImage.Image = IMG_FUNDO
+bgImage.ImageTransparency = 0.4
+bgImage.ScaleType = Enum.ScaleType.Crop
+bgImage.ZIndex = 2
+bgImage.Parent = mainFrame
+Instance.new("UICorner", bgImage).CornerRadius = UDim.new(0,10)
+
+local bgOverlay = Instance.new("Frame", mainFrame)
+bgOverlay.Size = UDim2.new(1,0,1,0)
+bgOverlay.BackgroundColor3 = C.bg
+bgOverlay.BackgroundTransparency = 0.4
+bgOverlay.BorderSizePixel = 0
+bgOverlay.ZIndex = 3
+Instance.new("UICorner", bgOverlay).CornerRadius = UDim.new(0,10)
+
+local uiStroke = Instance.new("UIStroke", mainFrame)
+uiStroke.Color = C.on; uiStroke.Thickness = 2; uiStroke.ZIndex = 4
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1,-45,0,35)
+titleLabel.Position = UDim2.new(0,12,0,2)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Croks Hub"
+titleLabel.TextColor3 = C.text
+titleLabel.TextSize = 18
+titleLabel.Font = Enum.Font.GothamBlack
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.ZIndex = 10
+titleLabel.Parent = mainFrame
+
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0,24,0,24)
+minBtn.Position = UDim2.new(1,-28,0,6)
+minBtn.BackgroundColor3 = C.on
+minBtn.Text = "-"
+minBtn.TextColor3 = Color3.fromRGB(255,255,255)
+minBtn.TextSize = 16
+minBtn.Font = Enum.Font.GothamBold
+minBtn.BorderSizePixel = 0
+minBtn.ZIndex = 10
+minBtn.Parent = mainFrame
+minBtn.AutoButtonColor = false
+Instance.new("UICorner", minBtn).CornerRadius = UDim.new(0,6)
+
+-- Abas com ⚙️ na Vel
+local tabNames = {"Main","Anti","AntiV2","Steal","⚙️","Ajuda","Log","Config"}
+local tabButtons, tabContainers = {}, {}
+local tabW = 1/#tabNames - 0.006
+
+for i, name in ipairs(tabNames) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(tabW, -1, 0, 22)
+    btn.Position = UDim2.new((i-1)*(tabW+0.006), 3, 0, 38)
+    btn.BackgroundColor3 = (i==1) and C.on or C.off
+    btn.BackgroundTransparency = (i==1) and 0.1 or 0.3
+    btn.Text = name
+    btn.TextColor3 = (i==1) and Color3.fromRGB(255,255,255) or C.textDim
+    btn.TextSize = name == "⚙️" and 11 or 8
+    btn.Font = (i==1) and Enum.Font.GothamBold or Enum.Font.GothamSemibold
+    btn.BorderSizePixel = 0; btn.ZIndex = 10; btn.Parent = mainFrame
+    btn.AutoButtonColor = false
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,4)
+    tabButtons[name] = btn
+
+    local container = Instance.new("ScrollingFrame")
+    container.Size = UDim2.new(1,-10,1,-105)
+    container.Position = UDim2.new(0,5,0,65)
+    container.BackgroundTransparency = 1
+    container.BorderSizePixel = 0
+    container.ScrollBarThickness = 3
+    container.ScrollBarImageColor3 = C.on
+    container.CanvasSize = UDim2.new(0,0,0,0)
+    container.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    container.Visible = (i==1); container.ZIndex = 10; container.Parent = mainFrame
+    tabContainers[name] = container
+end
+
+local function switchTab(name)
+    for n, btn in pairs(tabButtons) do
+        local ativo = (n == name)
+        btn.BackgroundColor3 = ativo and C.on or C.off
+        btn.BackgroundTransparency = ativo and 0.1 or 0.3
+        btn.TextColor3 = ativo and Color3.fromRGB(255,255,255) or C.textDim
+        btn.Font = ativo and Enum.Font.GothamBold or Enum.Font.GothamSemibold
+        tabContainers[n].Visible = ativo
+    end
+end
+
+for name, btn in pairs(tabButtons) do
+    btn.MouseButton1Click:Connect(function() switchTab(name) end)
+end
+
+local function makeBtn(parent, y, text, sizeY)
+    sizeY = sizeY or 32
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1,-10,0,sizeY)
+    b.Position = UDim2.new(0,5,0,y)
+    b.BackgroundColor3 = C.off
+    b.Text = ""; b.BorderSizePixel = 0; b.AutoButtonColor = false
+    b.ZIndex = 11; b.Parent = parent
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0,6)
+    local s = Instance.new("UIStroke", b)
+    s.Color = C.offStroke; s.Thickness = 1; s.Transparency = 0.5
+    local tx = Instance.new("TextLabel", b)
+    tx.Size = UDim2.new(1,0,1,0); tx.BackgroundTransparency = 1
+    tx.Text = text; tx.TextColor3 = C.text
+    tx.Font = Enum.Font.GothamBold; tx.TextSize = 12; tx.ZIndex = 12
+    return b, s, tx
+end
+
+local function setBtnOn(btn, stroke, on)
+    btn:SetAttribute("on", on)
+    if on then
+        btn.BackgroundColor3 = C.on
+        btn.BackgroundTransparency = 0.1
+        stroke.Color = C.onStroke
+        stroke.Transparency = 0
+    else
+        btn.BackgroundColor3 = C.off
+        btn.BackgroundTransparency = 0.15
+        stroke.Color = C.offStroke
+        stroke.Transparency = 0.5
+    end
+end
+
+-- ABA MAIN
+local mainC = tabContainers["Main"]
+local BtnBypass, SBypass, TBypass = makeBtn(mainC, 5, "BYPASS: EM DESENVOLVIMENTO")
+local BtnOvoInv, SOvoInv, TOvoInv = makeBtn(mainC, 45, "OVO INVISIVEL: OFF")
+local BtnAutoBat, SAB, TAB = makeBtn(mainC, 85, "AUTO BAT: OFF")
+local BtnAntiHit, SAH, TAH = makeBtn(mainC, 125, "ANTI-HIT: OFF")
+local BtnEspPlayer, SEspPlayer, TEspPlayer = makeBtn(mainC, 165, "ESP PLAYER: OFF")
+
+local AvisoFrame = Instance.new("Frame", mainC)
+AvisoFrame.Size = UDim2.new(1,-10,0,70)
+AvisoFrame.Position = UDim2.new(0,5,0,210)
+AvisoFrame.BackgroundColor3 = Color3.fromRGB(40,30,15)
+AvisoFrame.BorderSizePixel = 0; AvisoFrame.ZIndex = 11
+Instance.new("UICorner", AvisoFrame).CornerRadius = UDim.new(0,6)
+local AvisoStroke = Instance.new("UIStroke", AvisoFrame)
+AvisoStroke.Color = C.warn; AvisoStroke.Thickness = 1.5
+
+local AvisoLabel = Instance.new("TextLabel", AvisoFrame)
+AvisoLabel.Size = UDim2.new(1,-12,1,-8)
+AvisoLabel.Position = UDim2.new(0,6,0,4)
+AvisoLabel.BackgroundTransparency = 1
+AvisoLabel.Text = "AVISO\nAs vezes o anti-hit pode nao funcionar.\nSe nao funcionar, use a aba Anti-Hit V2."
+AvisoLabel.TextColor3 = Color3.fromRGB(255,235,180)
+AvisoLabel.Font = Enum.Font.GothamBold
+AvisoLabel.TextSize = 10
+AvisoLabel.TextXAlignment = Enum.TextXAlignment.Left
+AvisoLabel.TextYAlignment = Enum.TextYAlignment.Top
+AvisoLabel.TextWrapped = true; AvisoLabel.ZIndex = 12
+
+-- ABA ANTI
+local antiC = tabContainers["Anti"]
+local BtnAT, SAT, TAT = makeBtn(antiC, 5, "ANTI-TRAP: ON")
+local BtnRag, SRag, TRag = makeBtn(antiC, 45, "ANTI-RAGDOLL: ON")
+
+-- ABA ANTI V2
+local antiV2C = tabContainers["AntiV2"]
+local BtnHb, SHb, THb = makeBtn(antiV2C, 5, "HUMANOID BYPASS: ON")
+setBtnOn(BtnHb, SHb, true)
+local BtnSaveBase, SSaveBase, TSaveBase = makeBtn(antiV2C, 45, "SALVAR BASE")
+local BtnTeleport, STeleport, TTeleport = makeBtn(antiV2C, 85, "TELEPORT: OFF")
+local BtnIrOvo, SIrOvo, TIrOvo = makeBtn(antiV2C, 125, "IR MELHOR OVO [250]")
+
+local InfoV2 = Instance.new("TextLabel", antiV2C)
+InfoV2.Size = UDim2.new(1,-10,0,110)
+InfoV2.Position = UDim2.new(0,5,0,165)
+InfoV2.BackgroundTransparency = 1
+InfoV2.Text = "Anti-Hit V2:\n- Humanoid Bypass = liga/desliga clone\n- Salvar base = ponto de retorno\n- TELEPORT = one-shot (auto-TP apos pegar ovo)\n- Ir melhor ovo = SEMPRE 250 (ignora aba Vel)"
+InfoV2.TextColor3 = C.textDim
+InfoV2.Font = Enum.Font.Gotham
+InfoV2.TextSize = 10
+InfoV2.TextXAlignment = Enum.TextXAlignment.Left
+InfoV2.TextYAlignment = Enum.TextYAlignment.Top
+InfoV2.TextWrapped = true; InfoV2.ZIndex = 11
+
+_G.CroksUpdateTp = function()
+    if not BtnTeleport or not TTeleport then return end
+    if States.TeleportAtivo then
+        TTeleport.Text = "TELEPORT: ON"
+        setBtnOn(BtnTeleport, STeleport, true)
+    else
+        TTeleport.Text = "TELEPORT: OFF"
+        setBtnOn(BtnTeleport, STeleport, false)
+    end
+end
+
+-- ABA STEAL
+local stealC = tabContainers["Steal"]
+local BtnKillerSteal, SKillerSteal, TKillerSteal = makeBtn(stealC, 5, "AUTO STEAL: OFF")
+
+local StealInfoContainer = Instance.new("Frame", stealC)
+StealInfoContainer.Size = UDim2.new(1,-10,0,220)
+StealInfoContainer.Position = UDim2.new(0,5,0,45)
+StealInfoContainer.BackgroundTransparency = 1
+StealInfoContainer.ZIndex = 10
+
+local AvisoSteal = Instance.new("Frame", StealInfoContainer)
+AvisoSteal.Size = UDim2.new(1,0,0,110)
+AvisoSteal.Position = UDim2.new(0,0,0,0)
+AvisoSteal.BackgroundColor3 = Color3.fromRGB(45,25,15)
+AvisoSteal.BorderSizePixel = 0; AvisoSteal.ZIndex = 11
+AvisoSteal.Visible = false
+Instance.new("UICorner", AvisoSteal).CornerRadius = UDim.new(0,6)
+local AvisoStealStroke = Instance.new("UIStroke", AvisoSteal)
+AvisoStealStroke.Color = C.warn; AvisoStealStroke.Thickness = 1.5
+
+local AvisoStealLabel = Instance.new("TextLabel", AvisoSteal)
+AvisoStealLabel.Size = UDim2.new(1,-12,1,-8)
+AvisoStealLabel.Position = UDim2.new(0,6,0,4)
+AvisoStealLabel.BackgroundTransparency = 1
+AvisoStealLabel.Text = "AVISO\nAs vezes o Auto Steal nas ultimas areas (da penultima pra baixo) funciona :)\nNos testes funcionou.\nQualquer bug reporte a mim.\nBy: Kevin criador do steal: Killer"
+AvisoStealLabel.TextColor3 = Color3.fromRGB(255,220,160)
+AvisoStealLabel.Font = Enum.Font.GothamBold
+AvisoStealLabel.TextSize = 10
+AvisoStealLabel.TextXAlignment = Enum.TextXAlignment.Left
+AvisoStealLabel.TextYAlignment = Enum.TextYAlignment.Top
+AvisoStealLabel.TextWrapped = true; AvisoStealLabel.ZIndex = 12
+
+local KillerInfo = Instance.new("TextLabel", StealInfoContainer)
+KillerInfo.Size = UDim2.new(1,0,0,80)
+KillerInfo.Position = UDim2.new(0,0,0,120)
+KillerInfo.BackgroundTransparency = 1
+KillerInfo.Text = "Auto Steal (KillerHub):\n- Ligar = mostra o Killer\n- Desligar = esconde o Killer\n- Escolha o pet na UI original (tecla L)"
+KillerInfo.TextColor3 = C.textDim
+KillerInfo.Font = Enum.Font.Gotham
+KillerInfo.TextSize = 10
+KillerInfo.TextXAlignment = Enum.TextXAlignment.Left
+KillerInfo.TextYAlignment = Enum.TextYAlignment.Top
+KillerInfo.TextWrapped = true; KillerInfo.ZIndex = 11
+KillerInfo.Visible = false
+
+-- ABA ⚙️ (era Vel)
+local velC = tabContainers["⚙️"]
+
+local VelTitle = Instance.new("TextLabel", velC)
+VelTitle.Size = UDim2.new(1,-10,0,18)
+VelTitle.Position = UDim2.new(0,5,0,5)
+VelTitle.BackgroundTransparency = 1
+VelTitle.Text = "⚙️ Bypass de Velocidade (Anti-Hit V2)"
+VelTitle.TextColor3 = C.text
+VelTitle.Font = Enum.Font.GothamBold
+VelTitle.TextSize = 11
+VelTitle.TextXAlignment = Enum.TextXAlignment.Left
+VelTitle.ZIndex = 11
+
+local VelBoxV = Instance.new("TextBox", velC)
+VelBoxV.Size = UDim2.new(1,-10,0,30)
+VelBoxV.Position = UDim2.new(0,5,0,28)
+VelBoxV.BackgroundColor3 = Color3.fromRGB(25,10,10)
+VelBoxV.BorderSizePixel = 0
+VelBoxV.Text = tostring(States.VelocidadeBypass)
+VelBoxV.TextColor3 = C.text
+VelBoxV.Font = Enum.Font.GothamBold
+VelBoxV.TextSize = 13
+VelBoxV.ZIndex = 11
+VelBoxV.ClearTextOnFocus = false
+Instance.new("UICorner", VelBoxV).CornerRadius = UDim.new(0,6)
+local VelBoxVStroke = Instance.new("UIStroke", VelBoxV)
+VelBoxVStroke.Color = C.warn; VelBoxVStroke.Thickness = 1.5
+
+local PresetFrameV = Instance.new("Frame", velC)
+PresetFrameV.Size = UDim2.new(1,-10,0,30)
+PresetFrameV.Position = UDim2.new(0,5,0,64)
+PresetFrameV.BackgroundTransparency = 1; PresetFrameV.ZIndex = 10
+
+local presetsV = {250,500,700,1000}
+for i, v in ipairs(presetsV) do
+    local pb = Instance.new("TextButton", PresetFrameV)
+    pb.Size = UDim2.new(0.25,-3,1,0)
+    pb.Position = UDim2.new((i-1)*0.25, 0, 0, 0)
+    pb.BackgroundColor3 = C.off
+    pb.Text = tostring(v)
+    pb.TextColor3 = C.text
+    pb.Font = Enum.Font.GothamBold
+    pb.TextSize = 11
+    pb.BorderSizePixel = 0
+    pb.AutoButtonColor = false
+    pb.ZIndex = 11
+    Instance.new("UICorner", pb).CornerRadius = UDim.new(0,6)
+    local pbStroke = Instance.new("UIStroke", pb)
+    pbStroke.Color = C.offStroke; pbStroke.Thickness = 1; pbStroke.Transparency = 0.5
+    pb.MouseButton1Click:Connect(function()
+        VelBoxV.Text = tostring(v)
+        States.VelocidadeBypass = v
+        speedAlvo = v
+        pb.BackgroundColor3 = C.on
+        pbStroke.Color = C.onStroke
+        task.delay(0.3, function()
+            pb.BackgroundColor3 = C.off
+            pbStroke.Color = C.offStroke
+        end)
+        addLog("Velocidade: " .. v)
+    end)
+end
+
+VelBoxV.FocusLost:Connect(function()
+    local num = tonumber(VelBoxV.Text)
+    if num and num > 0 and num <= 5000 then
+        States.VelocidadeBypass = math.floor(num)
+        speedAlvo = States.VelocidadeBypass
+        VelBoxV.Text = tostring(States.VelocidadeBypass)
+        addLog("Velocidade: " .. States.VelocidadeBypass)
+    else
+        VelBoxV.Text = tostring(States.VelocidadeBypass)
+    end
+end)
+
+local VelInfo = Instance.new("TextLabel", velC)
+VelInfo.Size = UDim2.new(1,-10,0,90)
+VelInfo.Position = UDim2.new(0,5,0,104)
+VelInfo.BackgroundTransparency = 1
+VelInfo.Text = "⚙️ AVISO:\n- Recomendado: 250 (padrao)\n- Acima de 250 = risco de delivery error\n- Isso afeta o Anti-Hit V2 (salvar base/TP)"
+VelInfo.TextColor3 = Color3.fromRGB(255,200,140)
+VelInfo.Font = Enum.Font.GothamBold
+VelInfo.TextSize = 10
+VelInfo.TextXAlignment = Enum.TextXAlignment.Left
+VelInfo.TextYAlignment = Enum.TextYAlignment.Top
+VelInfo.TextWrapped = true
+VelInfo.ZIndex = 11
+
+-- ABA AJUDA
+local helpC = tabContainers["Ajuda"]
+
+local AjudaTitulo = Instance.new("TextLabel", helpC)
+AjudaTitulo.Size = UDim2.new(1,-10,0,18)
+AjudaTitulo.Position = UDim2.new(0,5,0,5)
+AjudaTitulo.BackgroundTransparency = 1
+AjudaTitulo.Text = "GUIA DE FUNCOES"
+AjudaTitulo.TextColor3 = C.text
+AjudaTitulo.Font = Enum.Font.GothamBlack
+AjudaTitulo.TextSize = 12
+AjudaTitulo.TextXAlignment = Enum.TextXAlignment.Left
+AjudaTitulo.ZIndex = 11
+
+local HELP_ITEMS = {
+    {t="OVO INVISIVEL", d="Deixa o ovo na sua mao invisivel pros outros players."},
+    {t="AUTO BAT", d="Equipa e ativa o taco sozinho nos alvos com destaque."},
+    {t="ANTI-HIT", d="Teleporta pra pontos seguros quando alguem ativa um prompt em voce."},
+    {t="HUMANOID BYPASS", d="Clona seu Humanoid. Bypassa kicks."},
+    {t="SALVAR BASE", d="Marca o local atual como ponto de retorno."},
+    {t="TELEPORT", d="One-shot: ao pegar ovo, TP automatico pra base."},
+    {t="IR MELHOR OVO", d="Anda com 250 ate o melhor ovo, TP em cima e grab."},
+    {t="BYPASS VELOCIDADE", d="Velocidade manual. Recomendado: 250. Acima = delivery error."},
+    {t="ESP MELHOR OVO", d="Mostra APENAS o melhor ovo do mapa com Billboard."},
+    {t="ESP PLAYER", d="Destaca TODOS os players. Com ovo: laranja + nome do ovo."},
+    {t="AUTO STEAL", d="Liga = mostra o KillerHub. Desliga = esconde."},
+    {t="ANTI-TRAP", d="Desativa o Hitbox das traps colocadas no chao."},
+    {t="ANTI-RAGDOLL", d="Impede ragdoll, falling down, physics."},
+    {t="COPIAR DISCORD", d="Copia o link do Discord pro clipboard."},
+    {t="REJOIN", d="Reconecta no mesmo servidor."},
+}
+
+local helpState = {}
+local helpObjs = {}
+
+local function reposicionarHelp()
+    local y = 28
+    for i, obj in ipairs(helpObjs) do
+        obj.card.Position = UDim2.new(0,5,0,y)
+        y = y + 32
+        if helpState[i] then
+            obj.body.Position = UDim2.new(0,5,0,y)
+            y = y + obj.h + 4
+        end
+    end
+end
+
+for i, item in ipairs(HELP_ITEMS) do
+    local card = Instance.new("TextButton", helpC)
+    card.Size = UDim2.new(1,-10,0,30)
+    card.Position = UDim2.new(0,5,0,0)
+    card.BackgroundColor3 = Color3.fromRGB(30,12,12)
+    card.BorderSizePixel = 0; card.Text = ""; card.AutoButtonColor = false
+    card.ZIndex = 11
+    Instance.new("UICorner", card).CornerRadius = UDim.new(0,6)
+    local cs = Instance.new("UIStroke", card)
+    cs.Color = C.on; cs.Thickness = 1; cs.Transparency = 0.5
+
+    local head = Instance.new("TextLabel", card)
+    head.Size = UDim2.new(1,-28,1,0)
+    head.Position = UDim2.new(0,10,0,0)
+    head.BackgroundTransparency = 1
+    head.Text = item.t
+    head.TextColor3 = C.text
+    head.Font = Enum.Font.GothamBold
+    head.TextSize = 10
+    head.TextXAlignment = Enum.TextXAlignment.Left
+    head.ZIndex = 12
+
+    local arrow = Instance.new("TextLabel", card)
+    arrow.Size = UDim2.new(0,20,1,0)
+    arrow.Position = UDim2.new(1,-24,0,0)
+    arrow.BackgroundTransparency = 1
+    arrow.Text = ">"
+    arrow.TextColor3 = C.onStroke
+    arrow.Font = Enum.Font.GothamBold
+    arrow.TextSize = 14
+    arrow.ZIndex = 12
+
+    local body = Instance.new("TextLabel", helpC)
+    body.Size = UDim2.new(1,-10,0,0)
+    body.Position = UDim2.new(0,5,0,0)
+    body.BackgroundColor3 = Color3.fromRGB(20,8,8)
+    body.Text = item.d
+    body.TextColor3 = C.textDim
+    body.Font = Enum.Font.Gotham
+    body.TextSize = 10
+    body.TextXAlignment = Enum.TextXAlignment.Left
+    body.TextYAlignment = Enum.TextYAlignment.Top
+    body.TextWrapped = true
+    body.Visible = false; body.ZIndex = 11
+    Instance.new("UICorner", body).CornerRadius = UDim.new(0,6)
+    local bs = Instance.new("UIStroke", body)
+    bs.Color = C.onStroke; bs.Thickness = 1; bs.Transparency = 0.5
+
+    local altura = math.ceil(#item.d / 34) * 14 + 14
+
+    table.insert(helpObjs, {card=card, body=body, arrow=arrow, stroke=cs, h=altura})
+
+    card.MouseButton1Click:Connect(function()
+        helpState[i] = not helpState[i]
+        body.Visible = helpState[i]
+        if helpState[i] then
+            body.Size = UDim2.new(1,-10,0,altura)
+            arrow.Text = "v"
+        else
+            arrow.Text = ">"
+        end
+        reposicionarHelp()
+    end)
+end
+
+reposicionarHelp()
+
+-- ABA LOG
+local logC = tabContainers["Log"]
+local BtnLogClear, SLogC, TLogC = makeBtn(logC, 3, "LIMPAR LOG")
+local logBox = Instance.new("TextLabel", logC)
+logBox.Size = UDim2.new(1,-10,0,300)
+logBox.Position = UDim2.new(0,5,0,40)
+logBox.BackgroundColor3 = Color3.fromRGB(15,5,5)
+logBox.Text = "Aguardando..."; logBox.TextColor3 = Color3.fromRGB(220,180,180)
+logBox.Font = Enum.Font.Code; logBox.TextSize = 10
+logBox.TextXAlignment = Enum.TextXAlignment.Left
+logBox.TextYAlignment = Enum.TextYAlignment.Top
+logBox.TextWrapped = true; logBox.ZIndex = 11
+Instance.new("UICorner", logBox).CornerRadius = UDim.new(0,6)
+_G.CroksLogUpdate = function() logBox.Text = table.concat(LOG, "\n") end
+BtnLogClear.MouseButton1Click:Connect(function() table.clear(LOG); _G.CroksLogUpdate() end)
+
+-- ABA CONFIG
+local cfgC = tabContainers["Config"]
+local BtnScale, SScale, TScale = makeBtn(cfgC, 5, "GUI SCALE: 1.0x")
+local BtnNotif, SNotif, TNotif = makeBtn(cfgC, 45, "NOTIFICACOES: SIM")
+local BtnRejoin, SRejoin, TRejoin = makeBtn(cfgC, 85, "REJOIN")
+local BtnDiscord, SDiscord, TDiscord = makeBtn(cfgC, 125, "COPIAR DISCORD")
+
+setBtnOn(BtnAT, SAT, true)
+setBtnOn(BtnRag, SRag, true)
+setBtnOn(BtnNotif, SNotif, true)
+
+-- HANDLERS
+BtnBypass.MouseButton1Click:Connect(function()
+    mostrarNotif("Bypass em desenvolvimento", 1.5, "warn")
+end)
+
+BtnOvoInv.MouseButton1Click:Connect(function()
+    States.OvoInvisivel = not States.OvoInvisivel
+    setBtnOn(BtnOvoInv, SOvoInv, States.OvoInvisivel)
+    TOvoInv.Text = "OVO INVISIVEL: " .. (States.OvoInvisivel and "ON" or "OFF")
+    addLog("Ovo Invisivel " .. (States.OvoInvisivel and "ON" or "OFF"))
+    if States.OvoInvisivel then
+        mostrarNotif("Ovo invisivel", 1.5, "success")
+    else
+        restaurarInvisibilidadeOvo()
+        mostrarNotif("Ovo visivel", 1.5, "info")
+    end
+end)
+
+BtnAutoBat.MouseButton1Click:Connect(function()
+    CroksBat.Ligado = not CroksBat.Ligado
+    States.AutoBatEnabled = CroksBat.Ligado
+    setBtnOn(BtnAutoBat, SAB, CroksBat.Ligado)
+    TAB.Text = "AUTO BAT: " .. (CroksBat.Ligado and "ON" or "OFF")
+    addLog("Auto Bat " .. (CroksBat.Ligado and "ON" or "OFF"))
+end)
+
+BtnAntiHit.MouseButton1Click:Connect(function()
+    States.AntiHitEnabled = not States.AntiHitEnabled
+    setBtnOn(BtnAntiHit, SAH, States.AntiHitEnabled)
+    TAH.Text = "ANTI-HIT: " .. (States.AntiHitEnabled and "ON" or "OFF")
+    addLog("Anti-Hit " .. (States.AntiHitEnabled and "ON" or "OFF"))
+end)
+
+BtnEspPlayer.MouseButton1Click:Connect(function()
+    States.ESPPlayerAtivo = not States.ESPPlayerAtivo
+    setBtnOn(BtnEspPlayer, SEspPlayer, States.ESPPlayerAtivo)
+    TEspPlayer.Text = "ESP PLAYER: " .. (States.ESPPlayerAtivo and "ON" or "OFF")
+    addLog("ESP Player " .. (States.ESPPlayerAtivo and "ON" or "OFF"))
+    if not States.ESPPlayerAtivo and _G.CroksLimparESPPlayer then
+        _G.CroksLimparESPPlayer()
+    end
+end)
+
+BtnAT.MouseButton1Click:Connect(function()
+    States.AntiTrapEnabled = not States.AntiTrapEnabled
+    setBtnOn(BtnAT, SAT, States.AntiTrapEnabled)
+    TAT.Text = "ANTI-TRAP: " .. (States.AntiTrapEnabled and "ON" or "OFF")
+end)
+
+BtnRag.MouseButton1Click:Connect(function()
+    States.AntiRagdollEnabled = not States.AntiRagdollEnabled
+    setBtnOn(BtnRag, SRag, States.AntiRagdollEnabled)
+    TRag.Text = "ANTI-RAGDOLL: " .. (States.AntiRagdollEnabled and "ON" or "OFF")
+end)
+
+local scaleIdx = 2
+local scales = {0.8,1.0,1.2,1.4}
+BtnScale.MouseButton1Click:Connect(function()
+    scaleIdx = scaleIdx + 1
+    if scaleIdx > #scales then scaleIdx = 1 end
+    uiScale.Scale = scales[scaleIdx]
+    TScale.Text = "GUI SCALE: " .. scales[scaleIdx] .. "x"
+end)
+
+BtnNotif.MouseButton1Click:Connect(function()
+    States.NotificacoesAtivas = not States.NotificacoesAtivas
+    setBtnOn(BtnNotif, SNotif, States.NotificacoesAtivas)
+    TNotif.Text = "NOTIFICACOES: " .. (States.NotificacoesAtivas and "SIM" or "NAO")
+end)
+
+BtnRejoin.MouseButton1Click:Connect(function()
+    addLog("Rejoin...")
+    mostrarNotif("Reconectando...", 2, "warn")
+    task.wait(0.5)
+    pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end)
+end)
+
+BtnDiscord.MouseButton1Click:Connect(function()
+    local ok = false
+    if setclipboard then ok = pcall(setclipboard, DISCORD_LINK)
+    elseif toclipboard then ok = pcall(toclipboard, DISCORD_LINK) end
+    if ok then mostrarNotif("Discord copiado!", 2, "success")
+    else mostrarNotif("Link: discord.gg/dDqdH8tJdM", 4, "info") end
+end)
+
+BtnHb.MouseButton1Click:Connect(function()
+    if Bypass.Enabled then
+        Bypass.Enabled = false
+        Bypass.Restore()
+        THb.Text = "HUMANOID BYPASS: OFF"
+        setBtnOn(BtnHb, SHb, false)
+        addLog("H-Bypass OFF")
+        mostrarNotif("H-Bypass OFF", 1.2, "info")
+    else
+        Bypass.Enabled = true
+        local char = LocalPlayer.Character
+        if char then task.spawn(function() task.wait(0.05); Bypass.Apply(char) end) end
+        THb.Text = "HUMANOID BYPASS: ON"
+        setBtnOn(BtnHb, SHb, true)
+        addLog("H-Bypass ON")
+        mostrarNotif("H-Bypass ON", 1.2, "success")
+    end
+end)
+
+BtnSaveBase.MouseButton1Click:Connect(function()
+    local _, _, hrp = getCharV2()
+    if not hrp then addLog("Sem personagem"); return end
+    States.BasePos = hrp.Position
+    addLog(string.format("Base salva: %.1f, %.1f, %.1f", States.BasePos.X, States.BasePos.Y, States.BasePos.Z))
+    mostrarNotif("Base salva!", 1.5, "success")
+end)
+
+BtnTeleport.MouseButton1Click:Connect(function()
+    if not States.BasePos then
+        addLog("Salve a base primeiro!")
+        mostrarNotif("Salve a base primeiro", 1.5, "error")
+        return
+    end
+    States.TeleportAtivo = not States.TeleportAtivo
+    States.TeleportOneShot = true
+    _G.CroksUpdateTp()
+    addLog(States.TeleportAtivo and "TELEPORT ON" or "TELEPORT OFF")
+    mostrarNotif(States.TeleportAtivo and "Teleport ON" or "Teleport OFF", 1.2, "info")
+end)
+
+BtnIrOvo.MouseButton1Click:Connect(function()
+    if States.IrAtivo then
+        pararIrV2()
+        TIrOvo.Text = "IR MELHOR OVO [250]"
+        setBtnOn(BtnIrOvo, SIrOvo, false)
+        addLog("IR cancelado")
+    else
+        TIrOvo.Text = "INDO [250]..."
+        setBtnOn(BtnIrOvo, SIrOvo, true)
+        addLog("IR iniciado [250]")
+        irMelhorOvoV2()
+    end
+end)
+
+-- KILLER: aparece/some com Auto Steal
+BtnKillerSteal.MouseButton1Click:Connect(function()
+    if not States.KillerStealAtivo then
+        -- ligar killer
+        local gui = PlayerGui:FindFirstChild("EggStealerUI")
+        if not gui then
+            -- tenta carregar se nao existir
+            local ok = pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/CyberVanguard001/Killerhub-v1.lua/refs/heads/main/82737366363363663y363636ehw776666wh3h8363jri"))()
+            end)
+            if not ok then
+                mostrarNotif("Falha ao carregar Killer", 2, "error")
+                return
+            end
+            task.wait(2)
+            gui = PlayerGui:FindFirstChild("EggStealerUI")
+        end
+
+        -- mostra FoxAtalhoGui
+        local coreGui = game:GetService("CoreGui")
+        local fox = coreGui:FindFirstChild("FoxAtalhoGui")
+        if fox then fox.Enabled = true end
+
+        -- clica STEAL no Miranda
+        if gui then
+            local root = gui:FindFirstChild("Root")
+            local btn = root and root:FindFirstChild("STEAL")
+            if btn then
+                if getconnections then
+                    for _, c in ipairs(getconnections(btn.MouseButton1Click)) do
+                        if c.Function then task.spawn(c.Function) break end
+                    end
+                end
+            end
+        end
+
+        States.KillerStealAtivo = true
+        TKillerSteal.Text = "AUTO STEAL: ON"
+        setBtnOn(BtnKillerSteal, SKillerSteal, true)
+        AvisoSteal.Visible = true
+        KillerInfo.Visible = true
+        addLog("Auto Steal ON (Killer visivel)")
+        mostrarNotif("Auto Steal ON", 1.2, "success")
+    else
+        -- desligar killer
+        local gui = PlayerGui:FindFirstChild("EggStealerUI")
+        if gui then
+            local root = gui:FindFirstChild("Root")
+            local btn = root and root:FindFirstChild("STOP")
+            if btn then
+                if getconnections then
+                    for _, c in ipairs(getconnections(btn.MouseButton1Click)) do
+                        if c.Function then task.spawn(c.Function) break end
+                    end
+                end
+            end
+        end
+
+        -- esconde FoxAtalhoGui
+        local coreGui = game:GetService("CoreGui")
+        local fox = coreGui:FindFirstChild("FoxAtalhoGui")
+        if fox then fox.Enabled = false end
+
+        States.KillerStealAtivo = false
+        TKillerSteal.Text = "AUTO STEAL: OFF"
+        setBtnOn(BtnKillerSteal, SKillerSteal, false)
+        AvisoSteal.Visible = false
+        KillerInfo.Visible = false
+        addLog("Auto Steal OFF (Killer oculto)")
+        mostrarNotif("Auto Steal OFF", 1.2, "info")
+    end
+end)
+
+-- MINIMIZAR
+local isMinimized = false
+local FULL_SIZE = mainFrame.Size
+local MINI_SIZE = UDim2.new(0,300,0,40)
+
+minBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        mainFrame.Size = MINI_SIZE
+        for _, btn in pairs(tabButtons) do btn.Visible = false end
+        for _, c in pairs(tabContainers) do c.Visible = false end
+        minBtn.Text = "+"
+    else
+        mainFrame.Size = FULL_SIZE
+        for _, btn in pairs(tabButtons) do btn.Visible = true end
+        switchTab("Main")
+        minBtn.Text = "-"
+    end
+end)
+
+-- ANTI-HIT
+local TeleportPoints = {
+    Vector3.new(500.62,241.28,-366.64), Vector3.new(504.45,155.80,-366.35),
+    Vector3.new(508.30,70.28,-366.03), Vector3.new(513.86,70.28,-366.25),
+    Vector3.new(519.43,70.28,-366.47), Vector3.new(524.32,70.28,-366.59),
+    Vector3.new(529.22,70.28,-366.71), Vector3.new(538.01,70.28,-365.55)
+}
+
+ProximityPromptService.PromptTriggered:Connect(function(prompt, plr)
+    if plr ~= LocalPlayer then return end
+    if not States.AntiHitEnabled then return end
+    if EuToComOvo() then return end
+    local char = LocalPlayer.Character
+    if not char then return end
+    task.spawn(function()
+        for _, pos in ipairs(TeleportPoints) do
+            if not States.AntiHitEnabled then break end
+            if EuToComOvo() then break end
+            char:PivotTo(CFrame.new(pos))
+            task.wait(0.02)
+        end
+    end)
+end)
+
+-- ESP MELHOR OVO (menor e mais bonito)
+local espFrame = Instance.new("Frame")
+espFrame.Size = UDim2.new(0, 260, 0, 54)
+espFrame.Position = UDim2.new(0.5, -130, 0, 10)
+espFrame.BackgroundColor3 = C.bg
+espFrame.BorderSizePixel = 0
+espFrame.ZIndex = 2000
+espFrame.Parent = screenGui
+Instance.new("UICorner", espFrame).CornerRadius = UDim.new(0, 10)
+
+local espStroke = Instance.new("UIStroke", espFrame)
+espStroke.Color = C.on
+espStroke.Thickness = 2
+espStroke.ZIndex = 2002
+local espStrokeGrad = Instance.new("UIGradient", espStroke)
+espStrokeGrad.Color = ColorSequence.new(Color3.fromRGB(255, 40, 40), Color3.fromRGB(120, 0, 0))
+
+task.spawn(function()
+    while espStrokeGrad.Parent do
+        espStrokeGrad.Rotation = (tick() * 60) % 360
+        task.wait(0.05)
+    end
+end)
+
+local espIcon = Instance.new("ImageLabel", espFrame)
+espIcon.Size = UDim2.new(0, 38, 0, 38)
+espIcon.Position = UDim2.new(0, 8, 0.5, -19)
+espIcon.BackgroundTransparency = 1
+espIcon.Image = IMG_ICONE
+espIcon.ZIndex = 2003
+espIcon.ScaleType = Enum.ScaleType.Fit
+
+local espNome = Instance.new("TextLabel", espFrame)
+espNome.Size = UDim2.new(1, -100, 0, 16)
+espNome.Position = UDim2.new(0, 52, 0, 6)
+espNome.BackgroundTransparency = 1
+espNome.Text = "Procurando..."
+espNome.TextColor3 = C.text
+espNome.Font = Enum.Font.GothamBlack
+espNome.TextSize = 13
+espNome.TextXAlignment = Enum.TextXAlignment.Left
+espNome.TextTruncate = Enum.TextTruncate.AtEnd
+espNome.ZIndex = 2003
+
+local espRar = Instance.new("TextLabel", espFrame)
+espRar.Size = UDim2.new(0, 120, 0, 12)
+espRar.Position = UDim2.new(0, 52, 0, 22)
+espRar.BackgroundTransparency = 1
+espRar.Text = ""
+espRar.TextColor3 = Color3.fromRGB(255, 180, 180)
+espRar.Font = Enum.Font.GothamBold
+espRar.TextSize = 10
+espRar.TextXAlignment = Enum.TextXAlignment.Left
+espRar.TextTruncate = Enum.TextTruncate.AtEnd
+espRar.ZIndex = 2003
+
+local espValor = Instance.new("TextLabel", espFrame)
+espValor.Size = UDim2.new(0, 120, 0, 14)
+espValor.Position = UDim2.new(0, 52, 0, 35)
+espValor.BackgroundTransparency = 1
+espValor.Text = ""
+espValor.TextColor3 = Color3.fromRGB(100, 255, 150)
+espValor.Font = Enum.Font.GothamBold
+espValor.TextSize = 11
+espValor.TextXAlignment = Enum.TextXAlignment.Left
+espValor.ZIndex = 2003
+
+local espCfgBtn = Instance.new("TextButton", espFrame)
+espCfgBtn.Size = UDim2.new(0, 42, 0, 18)
+espCfgBtn.Position = UDim2.new(1, -50, 0, 6)
+espCfgBtn.BackgroundColor3 = C.on
+espCfgBtn.BackgroundTransparency = 0.1
+espCfgBtn.Text = "TODAS"
+espCfgBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+espCfgBtn.Font = Enum.Font.GothamBold
+espCfgBtn.TextSize = 8
+espCfgBtn.BorderSizePixel = 0
+espCfgBtn.ZIndex = 2004
+espCfgBtn.AutoButtonColor = false
+Instance.new("UICorner", espCfgBtn).CornerRadius = UDim.new(0, 5)
+local espCfgStroke = Instance.new("UIStroke", espCfgBtn)
+espCfgStroke.Color = C.onStroke; espCfgStroke.Thickness = 1
+
+local espToggle = Instance.new("TextButton", espFrame)
+espToggle.Size = UDim2.new(0, 42, 0, 18)
+espToggle.Position = UDim2.new(1, -50, 0, 28)
+espToggle.BackgroundColor3 = C.onGreen
+espToggle.BackgroundTransparency = 0.1
+espToggle.Text = "ESP ON"
+espToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+espToggle.Font = Enum.Font.GothamBold
+espToggle.TextSize = 8
+espToggle.BorderSizePixel = 0
+espToggle.ZIndex = 2004
+espToggle.AutoButtonColor = false
+Instance.new("UICorner", espToggle).CornerRadius = UDim.new(0, 5)
+local espToggleStroke = Instance.new("UIStroke", espToggle)
+espToggleStroke.Color = C.onGreenStroke; espToggleStroke.Thickness = 1
+
+espCfgBtn.MouseButton1Click:Connect(function()
+    States.ESPAreaAtual = not States.ESPAreaAtual
+    if States.ESPAreaAtual then
+        espCfgBtn.Text = "AREA"
+        espCfgBtn.BackgroundColor3 = C.onGreen
+        espCfgStroke.Color = C.onGreenStroke
+    else
+        espCfgBtn.Text = "TODAS"
+        espCfgBtn.BackgroundColor3 = C.on
+        espCfgStroke.Color = C.onStroke
+    end
+end)
+
+espToggle.MouseButton1Click:Connect(function()
+    States.ESPOvosAtivo = not States.ESPOvosAtivo
+    if States.ESPOvosAtivo then
+        espToggle.BackgroundColor3 = C.onGreen
+        espToggleStroke.Color = C.onGreenStroke
+        espToggle.Text = "ESP ON"
+    else
+        espToggle.BackgroundColor3 = C.off
+        espToggleStroke.Color = C.offStroke
+        espToggle.Text = "ESP OFF"
+    end
+    addLog("ESP Ovos " .. (States.ESPOvosAtivo and "ON" or "OFF"))
+end)
+
+local espOvosCache = {}
+local espOvosFolder = Instance.new("Folder", screenGui)
+espOvosFolder.Name = "ESPOvos"
+
+task.spawn(function()
+    while true do
+        task.wait(1.0)
+        if States.ESPOvosAtivo then
+            local melhor = melhorOvoV2()
+            if melhor then
+                local model = acharModelOvo(melhor.Uid)
+                if model then
+                    local existing = espOvosCache[melhor.Uid]
+                    if existing and existing.Parent then
+                        local bp = model:IsA("BasePart") and model or model:FindFirstChildWhichIsA("BasePart", true)
+                        if bp then existing.Adornee = bp end
+                    else
+                        for _, bb in pairs(espOvosCache) do bb:Destroy() end
+                        espOvosCache = {}
+                        local basePart = model:IsA("BasePart") and model or model:FindFirstChildWhichIsA("BasePart", true)
+                        if basePart then
+                            local bb = Instance.new("BillboardGui")
+                            bb.Size = UDim2.new(0, 150, 0, 38)
+                            bb.StudsOffset = Vector3.new(0, 5, 0)
+                            bb.AlwaysOnTop = true
+                            bb.Adornee = basePart
+                            bb.Parent = espOvosFolder
+
+                            local bg = Instance.new("Frame", bb)
+                            bg.Size = UDim2.new(1, 0, 1, 0)
+                            bg.BackgroundColor3 = C.bg
+                            bg.BackgroundTransparency = 0.15
+                            bg.BorderSizePixel = 0
+                            Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 8)
+
+                            local stroke = Instance.new("UIStroke", bg)
+                            stroke.Thickness = 1.5
+                            stroke.Color = melhor.Cor
+
+                            local ic = Instance.new("ImageLabel", bg)
+                            ic.Size = UDim2.new(0, 28, 0, 28)
+                            ic.Position = UDim2.new(0, 5, 0.5, -14)
+                            ic.BackgroundColor3 = Color3.fromRGB(35, 20, 20)
+                            ic.BorderSizePixel = 0
+                            ic.Image = melhor.Icon
+                            Instance.new("UICorner", ic).CornerRadius = UDim.new(0, 6)
+
+                            local nome = Instance.new("TextLabel", bg)
+                            nome.Size = UDim2.new(1, -42, 0, 14)
+                            nome.Position = UDim2.new(0, 38, 0, 4)
+                            nome.BackgroundTransparency = 1
+                            nome.Text = melhor.Nome
+                            nome.TextColor3 = melhor.Cor
+                            nome.Font = Enum.Font.GothamBlack
+                            nome.TextSize = 11
+                            nome.TextXAlignment = Enum.TextXAlignment.Left
+                            nome.TextTruncate = Enum.TextTruncate.AtEnd
+
+                            local val = Instance.new("TextLabel", bg)
+                            val.Size = UDim2.new(1, -42, 0, 14)
+                            val.Position = UDim2.new(0, 38, 0, 20)
+                            val.BackgroundTransparency = 1
+                            val.Text = "$" .. formatarValor(melhor.Valor) .. "/s"
+                            val.TextColor3 = Color3.fromRGB(100, 255, 150)
+                            val.Font = Enum.Font.GothamBold
+                            val.TextSize = 10
+                            val.TextXAlignment = Enum.TextXAlignment.Left
+
+                            espOvosCache[melhor.Uid] = bb
+                        end
+                    end
+                end
+            end
+        else
+            for _, bb in pairs(espOvosCache) do bb:Destroy() end
+            espOvosCache = {}
+        end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(1.5)
+        local m = melhorOvoV2()
+        if m then
+            espIcon.Image = m.Icon
+            espNome.Text = m.Nome
+            espNome.TextColor3 = m.Cor
+            espRar.Text = m.Raridade .. " · " .. m.Area
+            espRar.TextColor3 = m.Cor
+            espStroke.Color = m.Cor
+            espValor.Text = "$" .. formatarValor(m.Valor) .. "/s"
+        else
+            espNome.Text = "Nenhum ovo"
+            espRar.Text = ""; espValor.Text = ""
+            espIcon.Image = ""
+        end
+    end
+end)
+
+-- ESP PLAYER
+local espPlayerCache = {}
+
+_G.CroksLimparESPPlayer = function()
+    for uid, data in pairs(espPlayerCache) do
+        if data.hl and data.hl.Parent then data.hl:Destroy() end
+        if data.bb and data.bb.Parent then data.bb:Destroy() end
+        if data.conn then pcall(function() data.conn:Disconnect() end) end
+    end
+    espPlayerCache = {}
+end
+
+local function criarEspPlayer(player)
+    local c = player.Character
+    if not c then return end
+    local hrp = c:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local hl = Instance.new("Highlight")
+    hl.Name = "CroksESPPlayerHL"
+    hl.Adornee = c
+    hl.FillColor = Color3.fromRGB(180, 180, 180)
+    hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+    hl.FillTransparency = 0.55
+    hl.OutlineTransparency = 0.1
+    pcall(function() hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop end)
+    hl.Parent = c
+
+    local bb = Instance.new("BillboardGui")
+    bb.Name = "CroksESPPlayerTag"
+    bb.Size = UDim2.new(0, 200, 0, 44)
+    bb.StudsOffset = Vector3.new(0, 3.5, 0)
+    bb.AlwaysOnTop = true
+    bb.Adornee = hrp
+    bb.Parent = hrp
+
+    local fr = Instance.new("Frame", bb)
+    fr.Size = UDim2.new(1, 0, 1, 0)
+    fr.BackgroundColor3 = Color3.fromRGB(20, 8, 8)
+    fr.BackgroundTransparency = 0.15
+    fr.BorderSizePixel = 0
+    Instance.new("UICorner", fr).CornerRadius = UDim.new(0, 6)
+    local stk = Instance.new("UIStroke", fr)
+    stk.Color = Color3.fromRGB(180, 180, 180)
+    stk.Thickness = 1.5
+
+    local nomeLbl = Instance.new("TextLabel", fr)
+    nomeLbl.Size = UDim2.new(1, -8, 0, 18)
+    nomeLbl.Position = UDim2.new(0, 4, 0, 2)
+    nomeLbl.BackgroundTransparency = 1
+    nomeLbl.Text = player.Name
+    nomeLbl.TextColor3 = C.text
+    nomeLbl.Font = Enum.Font.GothamBlack
+    nomeLbl.TextSize = 12
+    nomeLbl.TextStrokeColor3 = Color3.fromRGB(0,0,0)
+    nomeLbl.TextStrokeTransparency = 0.4
+
+    local infoLbl = Instance.new("TextLabel", fr)
+    infoLbl.Size = UDim2.new(1, -8, 0, 14)
+    infoLbl.Position = UDim2.new(0, 4, 0, 22)
+    infoLbl.BackgroundTransparency = 1
+    infoLbl.Text = ""
+    infoLbl.TextColor3 = Color3.fromRGB(200, 200, 220)
+    infoLbl.Font = Enum.Font.GothamBold
+    infoLbl.TextSize = 10
+    infoLbl.TextStrokeColor3 = Color3.fromRGB(0,0,0)
+    infoLbl.TextStrokeTransparency = 0.5
+
+    local conn = player.CharacterAdded:Connect(function()
+        task.wait(1)
+        if States.ESPPlayerAtivo then
+            local old = espPlayerCache[player.UserId]
+            if old then
+                if old.hl and old.hl.Parent then old.hl:Destroy() end
+                if old.bb and old.bb.Parent then old.bb:Destroy() end
+                if old.conn then pcall(function() old.conn:Disconnect() end) end
+            end
+            espPlayerCache[player.UserId] = nil
+            criarEspPlayer(player)
+        end
+    end)
+
+    espPlayerCache[player.UserId] = {hl=hl, bb=bb, fr=fr, stk=stk, nomeLbl=nomeLbl, infoLbl=infoLbl, conn=conn}
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if States.ESPPlayerAtivo then
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and not espPlayerCache[p.UserId] then
+                    criarEspPlayer(p)
+                end
+            end
+            for uid, data in pairs(espPlayerCache) do
+                local p = Players:GetPlayerByUserId(uid)
+                if not p or not p.Character or not p.Character.Parent then
+                    if data.hl and data.hl.Parent then data.hl:Destroy() end
+                    if data.bb and data.bb.Parent then data.bb:Destroy() end
+                    if data.conn then pcall(function() data.conn:Disconnect() end) end
+                    espPlayerCache[uid] = nil
+                end
+            end
+            local _, _, meuHrp = getCharV2()
+            for uid, data in pairs(espPlayerCache) do
+                local p = Players:GetPlayerByUserId(uid)
+                if p and p.Character and data.hl and data.hl.Parent then
+                    local temOvo = TaComOvo(p)
+                    if temOvo then
+                        local ovoInfo = nil
+                        for _, t in ipairs(p.Character:GetChildren()) do
+                            if t:IsA("Tool") then
+                                local cat = t:GetAttribute("AssetCategory")
+                                if cat then
+                                    ovoInfo = getEggInfo(cat)
+                                    if ovoInfo then break end
+                                end
+                            end
+                        end
+                        data.hl.FillColor = Color3.fromRGB(255, 140, 0)
+                        data.hl.OutlineColor = Color3.fromRGB(255, 220, 60)
+                        data.stk.Color = Color3.fromRGB(255, 180, 60)
+                        data.nomeLbl.TextColor3 = Color3.fromRGB(255, 220, 120)
+                        if ovoInfo then
+                            data.infoLbl.Text = ovoInfo.Nome .. " | $" .. formatarValor(ovoInfo.Valor) .. "/s"
+                            data.infoLbl.TextColor3 = Color3.fromRGB(255, 200, 100)
+                        else
+                            data.infoLbl.Text = "COM OVO"
+                            data.infoLbl.TextColor3 = Color3.fromRGB(255, 200, 100)
+                        end
+                    else
+                        data.hl.FillColor = Color3.fromRGB(180, 180, 180)
+                        data.hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+                        data.stk.Color = Color3.fromRGB(180, 180, 180)
+                        data.nomeLbl.TextColor3 = C.text
+                        data.infoLbl.Text = "sem ovo"
+                        data.infoLbl.TextColor3 = Color3.fromRGB(160, 160, 180)
+                    end
+                    local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+                    if meuHrp and hrp then
+                        local d = math.floor((meuHrp.Position - hrp.Position).Magnitude)
+                        data.infoLbl.Text = data.infoLbl.Text .. " | " .. d .. "m"
+                    end
+                end
+            end
+        else
+            if next(espPlayerCache) then
+                _G.CroksLimparESPPlayer()
+            end
+        end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(p)
+    local data = espPlayerCache[p.UserId]
+    if data then
+        if data.hl and data.hl.Parent then data.hl:Destroy() end
+        if data.bb and data.bb.Parent then data.bb:Destroy() end
+        if data.conn then pcall(function() data.conn:Disconnect() end) end
+        espPlayerCache[p.UserId] = nil
+    end
+end)
+
+-- LOADING FADE OUT
+task.spawn(function()
+    local totalTime = 3
+    local steps = 60
+    for i = 1, steps do
+        local pct = math.floor((i / steps) * 100)
+        if ldBarFill and ldBarFill.Parent then
+            ldBarFill.Size = UDim2.new(i / steps, 0, 1, 0)
+            ldPct.Text = pct .. "%"
+            if i == math.floor(steps * 0.3) then
+                ldSub.Text = "Carregando modulos..."
+                ldStatus.Text = "[ LOAD ]  v11.3 TECH"
+            end
+            if i == math.floor(steps * 0.6) then
+                ldSub.Text = "Conectando servidor..."
+                ldStatus.Text = "[ NET  ]  v11.3 TECH"
+            end
+            if i == math.floor(steps * 0.85) then
+                ldSub.Text = "Iniciando HUD..."
+                ldStatus.Text = "[ HUD  ]  v11.3 TECH"
+            end
+        end
+        task.wait(totalTime / steps)
+    end
+    ldSub.Text = "Pronto!"
+    task.wait(0.4)
+    pcall(function()
+        TweenService:Create(ldBase, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(ldBg, TweenInfo.new(0.5), {ImageTransparency = 1}):Play()
+        TweenService:Create(ldOverlay, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(ldCenter, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(ldTitle, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+        TweenService:Create(ldSub, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+        TweenService:Create(ldSubDot, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(ldPct, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+        TweenService:Create(ldCredit, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+        TweenService:Create(ldStatus, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+        TweenService:Create(ldBarBg, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(ldBarFill, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(ldCenterStroke, TweenInfo.new(0.5), {Transparency = 1}):Play()
+        TweenService:Create(ldIcon, TweenInfo.new(0.5), {ImageTransparency = 1}):Play()
+    end)
+    task.wait(0.6)
+    loadingGui:Destroy()
+    addLog("Croks Hub v11.3 carregado")
+end)
+
+print("[CROKS] TUDO CARREGADO")
